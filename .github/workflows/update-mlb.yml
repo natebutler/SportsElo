@@ -50,4 +50,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Automated Daily MLB Elo Update [skip ci]"
-          file_pattern: "data/mlb.json data/mlb_trend.png data/mlb_elo.rds"
+          file_pattern: "data/mlb.json data/mlb_history.json data/mlb_trend.png data/mlb_elo.rds"

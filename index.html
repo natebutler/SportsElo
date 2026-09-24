@@ -39,6 +39,9 @@
     }
   </script>
 
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
   <!-- Alpine.js via CDN -->
   <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
@@ -313,7 +316,11 @@
           <tbody class="divide-y divide-slate-100 text-sm">
             
             <template x-for="(team, index) in filteredTeams" :key="team.team_abbr">
-              <tr class="hover:bg-slate-50/80 transition-colors group">
+              <tr 
+                @click="sport === 'mlb' ? highlightFromTable(team.team_abbr) : null" 
+                :class="sport === 'mlb' ? 'cursor-pointer hover:bg-sky-50/60' : 'hover:bg-slate-50/80'" 
+                :title="sport === 'mlb' ? 'Click to highlight ' + team.team_name + ' on the chart below' : ''"
+                class="transition-colors group">
                 
                 <!-- Rank with podium styling -->
                 <td class="py-3.5 px-4 text-center font-mono">
@@ -388,35 +395,162 @@
 
     </div>
 
-    <!-- MLB Historical Progression Visual (Only shown on MLB tab) -->
+    <!-- MLB Interactive Season Progression Chart -->
     <div x-show="sport === 'mlb'" class="bg-white border border-slate-200/90 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      
+      <!-- Chart Header & Mode Toggle -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
         <div>
-          <h2 class="font-extrabold text-lg text-slate-900 flex items-center space-x-2">
-            <span>📈</span>
-            <span>Season Elo Progression</span>
-          </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Historical rating trajectories generated with mlbplotR scoreboard logos</p>
+          <div class="flex items-center space-x-2">
+            <h2 class="font-extrabold text-lg text-slate-900 flex items-center space-x-2">
+              <span>📈</span>
+              <span>MLB Elo Trajectory (Season 2026)</span>
+            </h2>
+            <span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-xs font-bold">Interactive</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Click any team logo or line to spotlight their season trajectory across all 184 dates</p>
         </div>
-        <button 
-          @click="showPlotModal = true" 
-          class="inline-flex items-center space-x-1.5 text-xs font-semibold text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-lg transition self-start sm:self-auto cursor-pointer">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-          </svg>
-          <span>Expand Chart</span>
-        </button>
+
+        <!-- Mode Toggle: Interactive vs Static Scoreboard Logos -->
+        <div class="inline-flex p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold">
+          <button 
+            @click="chartView = 'interactive'; $nextTick(() => renderChart())" 
+            :class="chartView === 'interactive' ? 'bg-white text-slate-900 shadow-xs border border-slate-200' : 'text-slate-500 hover:text-slate-800'"
+            class="px-3 py-1.5 rounded-lg transition cursor-pointer">
+            Interactive Graph (with Team Logos)
+          </button>
+          <button 
+            @click="chartView = 'static'" 
+            :class="chartView === 'static' ? 'bg-white text-slate-900 shadow-xs border border-slate-200' : 'text-slate-500 hover:text-slate-800'"
+            class="px-3 py-1.5 rounded-lg transition cursor-pointer">
+            Static Scoreboard View
+          </button>
+        </div>
       </div>
 
-      <!-- Embedded High-Res mlbplotR Graphic -->
-      <div class="bg-slate-50/60 rounded-xl p-2 sm:p-4 border border-slate-200 overflow-hidden cursor-pointer" @click="showPlotModal = true">
-        <img 
-          src="data/mlb_trend.png" 
-          alt="MLB Elo Ratings Over Time" 
-          class="w-full h-auto rounded-lg shadow-xs hover:opacity-95 transition-opacity"
-          loading="lazy" 
-        />
+      <!-- INTERACTIVE VIEW -->
+      <div x-show="chartView === 'interactive'" class="space-y-3">
+        
+        <!-- Controls Bar: Division / Tier Filters & Highlight Selector -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200/80">
+          
+          <!-- Filter Buttons -->
+          <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+            <span class="text-slate-400 mr-1 text-[11px] uppercase tracking-wider font-bold">View:</span>
+            
+            <button 
+              @click="setChartFilter('top10')" 
+              :class="chartFilter === 'top10' ? 'bg-sky-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
+              class="px-2.5 py-1 rounded-lg transition cursor-pointer">
+              Top 10 Contenders
+            </button>
+            <button 
+              @click="setChartFilter('all')" 
+              :class="chartFilter === 'all' ? 'bg-sky-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
+              class="px-2.5 py-1 rounded-lg transition cursor-pointer">
+              All 30 Teams
+            </button>
+
+            <!-- Division Dropdown -->
+            <select 
+              @change="setChartFilter($event.target.value)" 
+              class="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer">
+              <option value="" disabled :selected="!['AL East', 'AL Central', 'AL West', 'NL East', 'NL Central', 'NL West'].includes(chartFilter)">Divisions...</option>
+              <option value="AL East" :selected="chartFilter === 'AL East'">AL East</option>
+              <option value="AL Central" :selected="chartFilter === 'AL Central'">AL Central</option>
+              <option value="AL West" :selected="chartFilter === 'AL West'">AL West</option>
+              <option value="NL East" :selected="chartFilter === 'NL East'">NL East</option>
+              <option value="NL Central" :selected="chartFilter === 'NL Central'">NL Central</option>
+              <option value="NL West" :selected="chartFilter === 'NL West'">NL West</option>
+            </select>
+          </div>
+
+          <!-- Highlight Single Team Dropdown -->
+          <div class="flex items-center space-x-2">
+            <select 
+              x-model="highlightedTeam" 
+              @change="updateChartHighlight()" 
+              class="bg-white border border-slate-200 rounded-lg px-3 py-1 text-slate-800 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs cursor-pointer">
+              <option value="">Spotlight a Team...</option>
+              <template x-for="team in (mlbData ? mlbData.teams : [])" :key="team.team_abbr">
+                <option :value="team.team_abbr" x-text="'#' + team.rank + ' ' + team.team_name"></option>
+              </template>
+            </select>
+
+            <button 
+              x-show="highlightedTeam" 
+              @click="clearHighlight()" 
+              class="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded-lg transition cursor-pointer">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick-Pick Team Logos Ribbon -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto py-1 px-0.5 scrollbar-thin">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap mr-1">Teams:</span>
+          <template x-for="team in visibleTeamsList" :key="team.abbr">
+            <button 
+              @click="toggleHighlight(team.abbr)" 
+              :class="highlightedTeam === team.abbr ? 'ring-2 ring-sky-500 bg-sky-50 shadow-xs border-sky-300' : (highlightedTeam ? 'opacity-40 hover:opacity-100 bg-white border-slate-200' : 'bg-white hover:bg-slate-50 border-slate-200 shadow-2xs')"
+              class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all cursor-pointer flex-shrink-0"
+              :title="'Click to spotlight ' + team.name">
+              <img :src="team.logo" :alt="team.name" class="w-4 h-4 object-contain" />
+              <span class="text-slate-800 text-[11px]" x-text="team.abbr"></span>
+              <span class="font-mono text-[10px] text-slate-500" x-text="team.current_rating"></span>
+            </button>
+          </template>
+        </div>
+
+        <!-- Highlight status indicator & stats -->
+        <div x-show="highlightedTeam && highlightedTeamData" class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-sky-50 to-indigo-50/50 border border-sky-200 rounded-xl text-xs shadow-xs">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-white border border-sky-200 p-1 flex items-center justify-center shadow-2xs">
+              <img :src="highlightedTeamData ? highlightedTeamData.logo : ''" class="w-full h-full object-contain" />
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-extrabold text-sm text-slate-900" x-text="highlightedTeamData ? highlightedTeamData.name : ''"></span>
+                <span class="px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 font-mono font-bold text-[10px]" x-text="'Rank #' + (highlightedTeamData ? highlightedTeamData.current_rank : '')"></span>
+                <span class="text-slate-500 font-medium" x-text="'(' + (highlightedTeamData ? highlightedTeamData.record : '') + ')'"></span>
+              </div>
+              <div class="flex items-center space-x-3 mt-0.5 font-mono text-[11px] text-slate-600">
+                <span>Current: <strong class="text-sky-700" x-text="highlightedTeamData ? highlightedTeamData.current_rating : ''"></strong></span>
+                <span>Peak: <strong class="text-emerald-700" x-text="highlightedTeamData ? highlightedTeamData.peak : ''"></strong></span>
+                <span>Low: <strong class="text-rose-700" x-text="highlightedTeamData ? highlightedTeamData.low : ''"></strong></span>
+              </div>
+            </div>
+          </div>
+          <button @click="clearHighlight()" class="px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg shadow-2xs transition cursor-pointer">
+            ✕ Show All Teams
+          </button>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="relative w-full h-[520px] sm:h-[580px] bg-white rounded-xl p-2 sm:p-4 border border-slate-200/90 shadow-2xs">
+          <canvas id="mlbEloChart"></canvas>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
+          <span class="flex items-center space-x-1.5">
+            <span class="w-4 h-0.5 bg-slate-400 border-t border-dashed"></span>
+            <span>Dashed line: <strong>League Average (1500)</strong> • Click any logo or line to spotlight</span>
+          </span>
+          <span class="font-medium text-slate-400">Y-Axis: 1400 (Floor) to 1590 (Ceiling)</span>
+        </div>
       </div>
+
+      <!-- STATIC SCOREBOARD LOGOS VIEW (Preserved option) -->
+      <div x-show="chartView === 'static'" class="space-y-2">
+        <div class="flex items-center justify-between text-xs text-slate-500 pb-1">
+          <span>Official mlbplotR Scoreboard Logo Trajectory</span>
+          <button @click="showPlotModal = true" class="text-sky-600 font-bold hover:underline cursor-pointer">Full Screen &rarr;</button>
+        </div>
+        <div class="bg-slate-50/60 rounded-xl p-2 sm:p-4 border border-slate-200 overflow-hidden cursor-pointer" @click="showPlotModal = true">
+          <img src="data/mlb_trend.png" alt="MLB Elo Ratings Over Time" class="w-full h-auto rounded-lg shadow-xs hover:opacity-95 transition-opacity" loading="lazy" />
+        </div>
+      </div>
+
     </div>
 
     <!-- Methodology & Info Card -->
@@ -510,10 +644,17 @@
         sport: 'mlb',
         mlbData: null,
         nflData: null,
+        historyData: null,
         searchQuery: '',
         sortKey: 'rank',
         sortAsc: true,
         showPlotModal: false,
+
+        // Chart.js state
+        chartView: 'interactive',
+        chartFilter: 'top10',
+        highlightedTeam: '',
+        chartInstance: null,
 
         async initApp() {
           // Read hash if available (#nfl or #mlb)
@@ -522,11 +663,12 @@
             this.sport = hash;
           }
 
-          // Fetch MLB and NFL JSON files concurrently
+          // Fetch MLB, NFL, and MLB History JSON files concurrently
           try {
-            const [mlbRes, nflRes] = await Promise.all([
+            const [mlbRes, nflRes, histRes] = await Promise.all([
               fetch('data/mlb.json?t=' + Date.now()).catch(() => null),
-              fetch('data/nfl.json?t=' + Date.now()).catch(() => null)
+              fetch('data/nfl.json?t=' + Date.now()).catch(() => null),
+              fetch('data/mlb_history.json?t=' + Date.now()).catch(() => null)
             ]);
 
             if (mlbRes && mlbRes.ok) {
@@ -534,6 +676,23 @@
             }
             if (nflRes && nflRes.ok) {
               this.nflData = await nflRes.json();
+            }
+            if (histRes && histRes.ok) {
+              this.historyData = await histRes.json();
+              if (this.historyData && this.historyData.teams) {
+                Object.values(this.historyData.teams).forEach(t => {
+                  if (t.logo && !this._logoCache[t.abbr]) {
+                    const img = new Image();
+                    img.src = t.logo;
+                    this._logoCache[t.abbr] = img;
+                  }
+                });
+              }
+              if (this.sport === 'mlb') {
+                this.$nextTick(() => {
+                  setTimeout(() => this.renderChart(), 50);
+                });
+              }
             }
           } catch (e) {
             console.error('Failed to load sports data:', e);
@@ -546,6 +705,9 @@
           this.sortKey = 'rank';
           this.sortAsc = true;
           this.searchQuery = '';
+          if (newSport === 'mlb' && this.historyData) {
+            this.$nextTick(() => this.renderChart());
+          }
         },
 
         get currentData() {
@@ -578,6 +740,511 @@
           const min = Math.min(...ratings).toFixed(0);
           const max = Math.max(...ratings).toFixed(0);
           return `${min} - ${max}`;
+        },
+
+        get visibleTeamsList() {
+          if (!this.historyData || !this.historyData.teams) return [];
+          const teamsObj = this.historyData.teams;
+          const abbrList = Object.keys(teamsObj);
+          let active = [];
+          if (this.chartFilter === 'top10') {
+            active = abbrList.filter(a => teamsObj[a].current_rank <= 10);
+          } else if (this.chartFilter === 'all') {
+            active = [...abbrList];
+          } else {
+            active = abbrList.filter(a => teamsObj[a].division === this.chartFilter);
+          }
+          return active
+            .map(a => teamsObj[a])
+            .sort((a, b) => a.current_rank - b.current_rank);
+        },
+
+        get highlightedTeamData() {
+          if (!this.highlightedTeam || !this.historyData || !this.historyData.teams) return null;
+          const tm = this.historyData.teams[this.highlightedTeam];
+          if (!tm) return null;
+          const validRatings = (tm.ratings || []).filter(r => r != null && !isNaN(r));
+          const maxR = validRatings.length > 0 ? Math.max(...validRatings).toFixed(1) : tm.current_rating;
+          const minR = validRatings.length > 0 ? Math.min(...validRatings).toFixed(1) : tm.current_rating;
+          return {
+            ...tm,
+            peak: maxR,
+            low: minR
+          };
+        },
+
+        _logoCache: {},
+        getTeamLogoImg(abbr, url) {
+          if (this._logoCache[abbr]) return this._logoCache[abbr];
+          const img = new Image();
+          img.src = url;
+          this._logoCache[abbr] = img;
+          return img;
+        },
+
+        setChartFilter(filter) {
+          this.chartFilter = filter;
+          this.$nextTick(() => {
+            this.renderChart();
+          });
+        },
+
+        toggleHighlight(abbr) {
+          if (this.highlightedTeam === abbr) {
+            this.highlightedTeam = '';
+          } else {
+            this.highlightedTeam = abbr;
+          }
+          this.$nextTick(() => {
+            this.renderChart();
+          });
+        },
+
+        updateChartHighlight() {
+          this.$nextTick(() => {
+            this.renderChart();
+          });
+        },
+
+        clearHighlight() {
+          this.highlightedTeam = '';
+          this.$nextTick(() => {
+            this.renderChart();
+          });
+        },
+
+        highlightFromTable(abbr) {
+          this.highlightedTeam = (this.highlightedTeam === abbr) ? '' : abbr;
+          this.chartView = 'interactive';
+          this.$nextTick(() => {
+            this.renderChart();
+            const chartEl = document.getElementById('mlbEloChart');
+            if (chartEl) {
+              chartEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          });
+        },
+
+        renderChart() {
+          if (!this.historyData || typeof Chart === 'undefined') return;
+          const canvas = document.getElementById('mlbEloChart');
+          if (!canvas) return;
+
+          const labels = this.historyData.display_dates;
+          const teamsObj = this.historyData.teams;
+          const abbrList = Object.keys(teamsObj);
+
+          // Determine which teams are visible based on filter
+          let activeAbbrs = [];
+          if (this.chartFilter === 'top10') {
+            activeAbbrs = abbrList
+              .filter(a => teamsObj[a].current_rank <= 10)
+              .sort((a, b) => teamsObj[a].current_rank - teamsObj[b].current_rank);
+          } else if (this.chartFilter === 'all') {
+            activeAbbrs = [...abbrList].sort((a, b) => teamsObj[a].current_rank - teamsObj[b].current_rank);
+          } else {
+            // Division filter
+            activeAbbrs = abbrList.filter(a => teamsObj[a].division === this.chartFilter);
+          }
+
+          // If a specific team is highlighted, ensure it is included
+          if (this.highlightedTeam && !activeAbbrs.includes(this.highlightedTeam)) {
+            activeAbbrs.push(this.highlightedTeam);
+          }
+
+          // Preload logos
+          activeAbbrs.forEach(abbr => {
+            const tm = teamsObj[abbr];
+            if (tm && tm.logo) {
+              this.getTeamLogoImg(abbr, tm.logo);
+            }
+          });
+
+          // Build datasets
+          const datasets = activeAbbrs.map(abbr => {
+            const tm = teamsObj[abbr];
+            const isTarget = this.highlightedTeam === abbr;
+            const hasHighlight = !!this.highlightedTeam;
+
+            let strokeColor = tm.color || '#002D62';
+            let strokeWidth = 2.2;
+            let order = tm.current_rank;
+
+            if (hasHighlight) {
+              if (isTarget) {
+                strokeWidth = 4.5;
+                order = 0; // bring to front
+              } else {
+                strokeColor = '#cbd5e1'; // dim non-targeted lines
+                strokeWidth = 1.2;
+                order = 50;
+              }
+            }
+
+            return {
+              label: tm.name,
+              data: tm.ratings,
+              borderColor: strokeColor,
+              backgroundColor: strokeColor,
+              borderWidth: strokeWidth,
+              order: order,
+              pointRadius: isTarget ? 2.5 : 0,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: tm.color || '#002D62',
+              pointHoverBorderColor: '#ffffff',
+              pointHoverBorderWidth: 2,
+              tension: 0.15,
+              teamData: tm
+            };
+          });
+
+          // Custom Baseline Plugin for League Average (1500)
+          const baselinePlugin = {
+            id: 'baseline1500',
+            beforeDraw(chart) {
+              const yAxis = chart.scales.y;
+              const xAxis = chart.scales.x;
+              if (!yAxis || !xAxis) return;
+              const yVal = yAxis.getPixelForValue(1500);
+              const ctx = chart.ctx;
+
+              ctx.save();
+              ctx.beginPath();
+              ctx.setLineDash([5, 5]);
+              ctx.strokeStyle = '#94a3b8'; // slate-400
+              ctx.lineWidth = 1.5;
+              ctx.moveTo(xAxis.left, yVal);
+              ctx.lineTo(xAxis.right, yVal);
+              ctx.stroke();
+
+              // Draw label
+              ctx.fillStyle = '#64748b';
+              ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+              ctx.fillText('League Avg (1500)', xAxis.left + 8, yVal - 6);
+              ctx.restore();
+            }
+          };
+
+          // Custom Team Logos Plugin (Draws official logos at the end of each team line)
+          const app = this;
+          const teamEndLogosPlugin = {
+            id: 'teamEndLogos',
+            afterDatasetsDraw(chart) {
+              const ctx = chart.ctx;
+              const chartArea = chart.chartArea;
+              if (!chartArea) return;
+
+              const endpoints = [];
+              chart.data.datasets.forEach((ds, idx) => {
+                const meta = chart.getDatasetMeta(idx);
+                if (!meta.hidden && meta.data && meta.data.length > 0) {
+                  const lastPt = meta.data[meta.data.length - 1];
+                  if (lastPt) {
+                    endpoints.push({
+                      abbr: ds.teamData.abbr,
+                      name: ds.teamData.name,
+                      color: ds.borderColor || '#0284c7',
+                      logoUrl: ds.teamData.logo,
+                      rating: ds.teamData.current_rating,
+                      rank: ds.teamData.current_rank,
+                      targetX: lastPt.x,
+                      targetY: lastPt.y,
+                      y: lastPt.y,
+                      isHighlighted: app.highlightedTeam === ds.teamData.abbr
+                    });
+                  }
+                }
+              });
+
+              if (endpoints.length === 0) return;
+
+              // Sort by Y ascending (highest rating = smallest Y at top)
+              endpoints.sort((a, b) => a.targetY - b.targetY);
+
+              // Anti-collision spacing calculation
+              const count = endpoints.length;
+              const topLimit = chartArea.top + 14;
+              const bottomLimit = chartArea.bottom - 14;
+              const availableH = bottomLimit - topLimit;
+              const minSpacing = Math.min(26, Math.max(14, availableH / Math.max(1, count - 1)));
+
+              // Forward pass
+              for (let i = 0; i < count; i++) {
+                if (i === 0) {
+                  if (endpoints[i].y < topLimit) endpoints[i].y = topLimit;
+                } else {
+                  if (endpoints[i].y < endpoints[i - 1].y + minSpacing) {
+                    endpoints[i].y = endpoints[i - 1].y + minSpacing;
+                  }
+                }
+              }
+
+              // Backward pass
+              if (count > 0 && endpoints[count - 1].y > bottomLimit) {
+                endpoints[count - 1].y = bottomLimit;
+                for (let i = count - 2; i >= 0; i--) {
+                  if (endpoints[i].y > endpoints[i + 1].y - minSpacing) {
+                    endpoints[i].y = endpoints[i + 1].y - minSpacing;
+                  }
+                }
+              }
+
+              chart.logoHitboxes = [];
+              const logoCenterX = chartArea.right + 25;
+
+              // Draw non-highlighted first, then highlighted on top
+              const drawOrder = [...endpoints].sort((a, b) => {
+                if (a.isHighlighted) return 1;
+                if (b.isHighlighted) return -1;
+                return 0;
+              });
+
+              drawOrder.forEach(item => {
+                const isTarget = item.isHighlighted;
+                const hasAny = !!app.highlightedTeam;
+                const isDimmed = hasAny && !isTarget;
+
+                ctx.save();
+                ctx.globalAlpha = isDimmed ? 0.35 : 1.0;
+
+                // Subtle bezier connector from line endpoint to logo badge
+                ctx.beginPath();
+                ctx.moveTo(item.targetX, item.targetY);
+                ctx.bezierCurveTo(
+                  item.targetX + 8, item.targetY,
+                  logoCenterX - 18, item.y,
+                  logoCenterX - 12, item.y
+                );
+                ctx.strokeStyle = item.color;
+                ctx.lineWidth = isTarget ? 2.5 : 1.2;
+                ctx.stroke();
+
+                // Circular badge container
+                const radius = isTarget ? 15 : 12;
+                const logoDim = isTarget ? 22 : 18;
+
+                ctx.beginPath();
+                ctx.arc(logoCenterX, item.y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                if (isTarget) {
+                  ctx.shadowColor = item.color;
+                  ctx.shadowBlur = 12;
+                } else {
+                  ctx.shadowColor = 'rgba(0,0,0,0.12)';
+                  ctx.shadowBlur = 3;
+                  ctx.shadowOffsetX = 1;
+                  ctx.shadowOffsetY = 1;
+                }
+                ctx.fill();
+
+                // Border
+                ctx.lineWidth = isTarget ? 3 : 1.5;
+                ctx.strokeStyle = isTarget ? item.color : '#cbd5e1';
+                ctx.stroke();
+                ctx.restore();
+
+                // Team Logo inside badge
+                const img = app.getTeamLogoImg(item.abbr, item.logoUrl);
+                if (img && img.complete && img.naturalWidth > 0) {
+                  ctx.save();
+                  if (isDimmed) ctx.globalAlpha = 0.35;
+                  ctx.beginPath();
+                  ctx.arc(logoCenterX, item.y, radius - 1.5, 0, Math.PI * 2);
+                  ctx.clip();
+                  ctx.drawImage(img, logoCenterX - logoDim / 2, item.y - logoDim / 2, logoDim, logoDim);
+                  ctx.restore();
+                } else {
+                  ctx.save();
+                  if (isDimmed) ctx.globalAlpha = 0.35;
+                  ctx.fillStyle = item.color;
+                  ctx.font = 'bold 9px "JetBrains Mono", monospace';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(item.abbr, logoCenterX, item.y);
+                  ctx.restore();
+                }
+
+                chart.logoHitboxes.push({
+                  abbr: item.abbr,
+                  name: item.name,
+                  x: logoCenterX,
+                  y: item.y,
+                  radius: radius + 4
+                });
+              });
+            }
+          };
+
+          // Attach canvas interactive mouse events once
+          if (!canvas._sportsListenersAttached) {
+            canvas._sportsListenersAttached = true;
+
+            canvas.addEventListener('mousemove', (e) => {
+              if (!this.chartInstance) return;
+              const rect = canvas.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
+
+              // Check if mouse is over any logo badge
+              const boxes = this.chartInstance.logoHitboxes || [];
+              let hovered = null;
+              for (const box of boxes) {
+                if (Math.hypot(mouseX - box.x, mouseY - box.y) <= box.radius) {
+                  hovered = box;
+                  break;
+                }
+              }
+
+              if (hovered) {
+                canvas.style.cursor = 'pointer';
+                canvas.title = `${hovered.name} (Click to spotlight)`;
+                return;
+              }
+
+              // Check if mouse is near any line
+              const elements = this.chartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+              if (elements && elements.length > 0) {
+                canvas.style.cursor = 'pointer';
+                const ds = this.chartInstance.data.datasets[elements[0].datasetIndex];
+                if (ds && ds.teamData) {
+                  canvas.title = `${ds.teamData.name} (Click to spotlight)`;
+                }
+              } else {
+                canvas.style.cursor = 'default';
+                canvas.title = '';
+              }
+            });
+
+            canvas.addEventListener('click', (e) => {
+              if (!this.chartInstance) return;
+              const rect = canvas.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
+
+              // Check if clicked a team logo badge
+              const boxes = this.chartInstance.logoHitboxes || [];
+              for (const box of boxes) {
+                if (Math.hypot(mouseX - box.x, mouseY - box.y) <= box.radius) {
+                  this.toggleHighlight(box.abbr);
+                  return;
+                }
+              }
+
+              // Check if clicked near a line
+              const elements = this.chartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+              if (elements && elements.length > 0) {
+                const ds = this.chartInstance.data.datasets[elements[0].datasetIndex];
+                if (ds && ds.teamData) {
+                  this.toggleHighlight(ds.teamData.abbr);
+                  return;
+                }
+              }
+
+              // Clicked empty area outside chart elements resets highlight
+              if (this.highlightedTeam) {
+                const chartArea = this.chartInstance.chartArea;
+                if (chartArea && (mouseX < chartArea.left || mouseX > chartArea.right + 50 || mouseY < chartArea.top || mouseY > chartArea.bottom)) {
+                  this.clearHighlight();
+                }
+              }
+            });
+          }
+
+          const chartConfig = {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false,
+              layout: {
+                padding: {
+                  right: 55,
+                  top: 15,
+                  bottom: 10,
+                  left: 10
+                }
+              },
+              interaction: {
+                mode: 'nearest',
+                intersect: false,
+                axis: 'x'
+              },
+              plugins: {
+                legend: {
+                  display: false
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                  titleFont: { family: '"Plus Jakarta Sans", sans-serif', size: 12, weight: '700' },
+                  bodyFont: { family: '"JetBrains Mono", monospace', size: 12 },
+                  padding: 12,
+                  cornerRadius: 10,
+                  boxPadding: 6,
+                  callbacks: {
+                    title: (items) => {
+                      const idx = items[0].dataIndex;
+                      return labels[idx] + ' (Season 2026)';
+                    },
+                    label: (context) => {
+                      const ds = context.dataset;
+                      const tm = ds.teamData;
+                      const rating = context.parsed.y;
+                      const diff = rating - 1500;
+                      const sign = diff >= 0 ? '+' : '';
+                      return ` #${tm.current_rank} ${tm.name}: ${rating.toFixed(1)} (${sign}${diff.toFixed(1)} vs avg)`;
+                    }
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: {
+                    font: { family: '"Plus Jakarta Sans", sans-serif', size: 11 },
+                    color: '#64748b',
+                    maxTicksLimit: 9,
+                    maxRotation: 0
+                  }
+                },
+                y: {
+                  min: 1400,
+                  max: 1590,
+                  afterBuildTicks: (axis) => {
+                    axis.ticks = [
+                      { value: 1400 },
+                      { value: 1450 },
+                      { value: 1500 },
+                      { value: 1550 },
+                      { value: 1590 }
+                    ];
+                  },
+                  ticks: {
+                    font: { family: '"JetBrains Mono", monospace', size: 11, weight: '700' },
+                    color: '#64748b',
+                    callback: (value) => value
+                  },
+                  grid: {
+                    color: (context) => (context.tick && context.tick.value === 1500 ? '#cbd5e1' : '#f1f5f9'),
+                    lineWidth: (context) => (context.tick && context.tick.value === 1500 ? 1.8 : 1)
+                  },
+                  title: {
+                    display: true,
+                    text: 'Elo Rating (League Avg: 1500)',
+                    font: { family: '"Plus Jakarta Sans", sans-serif', size: 12, weight: '700' },
+                    color: '#475569'
+                  }
+                }
+              }
+            },
+            plugins: [baselinePlugin, teamEndLogosPlugin]
+          };
+
+          if (this.chartInstance) {
+            this.chartInstance.destroy();
+            this.chartInstance = null;
+          }
+          this.chartInstance = new Chart(canvas, chartConfig);
         },
 
         sortBy(key) {

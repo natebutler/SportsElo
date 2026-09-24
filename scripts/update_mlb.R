@@ -274,7 +274,16 @@ update_all_mlb <- function(rds_path = "data/mlb_elo.rds", k = 7, regress = 0.14)
     previous_elo <- elo_ratings
   }
   
+  if (length(elo_history) == 0) {
+    message("No completed games found in the incremental window.")
+    return(existing_data)
+  }
+  
   new_days_df <- bind_rows(elo_history)
+  if (nrow(new_days_df) == 0) {
+    message("No completed games found in the incremental window.")
+    return(existing_data)
+  }
   
   # Join logos for the new days
   team_logos <- load_mlb_teams() %>% 
@@ -356,14 +365,72 @@ mlb_export <- list(
 write_json(mlb_export, "data/mlb.json", pretty = TRUE, auto_unbox = TRUE)
 message("Wrote data/mlb.json successfully (", nrow(latest_elo_df), " teams).")
 
-# Generate Trend Plot with Scoreboard Logos
+# Export full time-series history for interactive Chart.js
+message("Exporting data/mlb_history.json for interactive visualization...")
+all_dates <- sort(unique(as.Date(elo_with_logos$Date)))
+formatted_dates <- format(all_dates, "%Y-%m-%d")
+display_dates <- format(all_dates, "%b %d")
+
+divisions <- list(
+  "BAL" = "AL East", "BOS" = "AL East", "NYY" = "AL East", "TB" = "AL East", "TOR" = "AL East",
+  "CWS" = "AL Central", "CLE" = "AL Central", "DET" = "AL Central", "KC" = "AL Central", "MIN" = "AL Central",
+  "HOU" = "AL West", "LAA" = "AL West", "ATH" = "AL West", "OAK" = "AL West", "SEA" = "AL West", "TEX" = "AL West",
+  "ATL" = "NL East", "MIA" = "NL East", "NYM" = "NL East", "PHI" = "NL East", "WSH" = "NL East",
+  "CHC" = "NL Central", "CIN" = "NL Central", "MIL" = "NL Central", "PIT" = "NL Central", "STL" = "NL Central",
+  "ARI" = "NL West", "COL" = "NL West", "LAD" = "NL West", "SD" = "NL West", "SF" = "NL West"
+)
+
+teams_list <- list()
+for (i in seq_len(nrow(latest_elo_df))) {
+  tm <- latest_elo_df$Team[i]
+  abbr <- latest_elo_df$team_abbr[i]
+  
+  tm_history <- elo_with_logos %>%
+    filter(Team == tm) %>%
+    select(Date, rating = `Elo Rating`) %>%
+    arrange(as.Date(Date))
+  
+  ratings_vec <- rep(NA_real_, length(all_dates))
+  match_idx <- match(as.Date(tm_history$Date), all_dates)
+  ratings_vec[match_idx] <- round(as.numeric(tm_history$rating), 1)
+  
+  for (k in seq_along(ratings_vec)) {
+    if (is.na(ratings_vec[k]) && k > 1) {
+      ratings_vec[k] <- ratings_vec[k - 1]
+    }
+  }
+  
+  div_val <- divisions[[abbr]]
+  if (is.null(div_val)) div_val <- "MLB"
+  
+  teams_list[[abbr]] <- list(
+    name = tm,
+    abbr = abbr,
+    color = ifelse(is.na(latest_elo_df$team_color[i]), "#002D62", latest_elo_df$team_color[i]),
+    logo = latest_elo_df$team_logo_espn[i],
+    division = div_val,
+    current_rank = as.integer(latest_elo_df$Rank[i]),
+    current_rating = round(as.numeric(latest_elo_df$`Elo Rating`[i]), 1),
+    record = paste0(latest_elo_df$Wins[i], "-", latest_elo_df$Losses[i]),
+    ratings = ratings_vec
+  )
+}
+
+history_export <- list(
+  sport = "MLB",
+  season = 2026,
+  dates = formatted_dates,
+  display_dates = display_dates,
+  teams = teams_list
+)
+write_json(history_export, "data/mlb_history.json", pretty = FALSE, auto_unbox = TRUE)
+message("Wrote data/mlb_history.json successfully.")
+
+# Generate Trend Plot with Scoreboard Logos (preserved as fallback/reference)
 message("Rendering data/mlb_trend.png...")
-min_elo <- floor(min(elo_with_logos$`Elo Rating`, na.rm = TRUE) / 5) * 5
-true_max_elo <- max(elo_with_logos$`Elo Rating`, na.rm = TRUE)
-max_elo <- ceiling(true_max_elo / 5) * 5
-max_break <- max_elo + ifelse(max_elo == true_max_elo, 5, 0)
-base_breaks <- seq(min_elo, max_break, by = 20)
-custom_breaks <- sort(unique(c(base_breaks, 1500, min_elo, max_break)))
+min_elo <- 1400
+max_elo <- 1590
+custom_breaks <- c(1400, 1450, 1500, 1550, 1590)
 
 p <- ggplot(elo_with_logos, aes(x = as.Date(Date), y = `Elo Rating`, group = team_abbr, color = team_abbr)) +
   geom_line(linewidth = 0.9, alpha = 0.8) +
@@ -374,7 +441,7 @@ p <- ggplot(elo_with_logos, aes(x = as.Date(Date), y = `Elo Rating`, group = tea
     width = 0.045
   ) +
   scale_color_mlb(type = "primary") +
-  scale_y_continuous(limits = c(min_elo, max_break), breaks = custom_breaks) +
+  scale_y_continuous(limits = c(1400, 1590), breaks = custom_breaks) +
   scale_x_date(
     limits = c(min(as.Date(elo_with_logos$Date)), max(as.Date(elo_with_logos$Date)) + 2),
     breaks = seq(min(as.Date(elo_with_logos$Date)), max(as.Date(elo_with_logos$Date)), length.out = 6),
