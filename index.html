@@ -210,25 +210,37 @@
         </template>
       </div>
 
-      <!-- Card 3: League Benchmark Stats -->
+      <!-- Card 3: League Benchmark Stats & Plain English Guide -->
       <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-        <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
-          <span class="uppercase tracking-wider">Elo Distribution</span>
-          <span class="text-slate-400 font-mono">Mean = 1500</span>
-        </div>
-        <div class="grid grid-cols-2 gap-4 py-1">
-          <div>
-            <span class="text-xs font-medium text-slate-500 block">League Range</span>
-            <span class="font-mono text-lg font-bold text-slate-900" x-text="eloSpread"></span>
+        <div>
+          <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+            <span class="uppercase tracking-wider text-slate-600 flex items-center space-x-1.5">
+              <span>📊</span>
+              <span>League Benchmark</span>
+            </span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[11px] font-semibold">Average = 1500</span>
           </div>
-          <div>
-            <span class="text-xs font-medium text-slate-500 block">Active Teams</span>
-            <span class="font-mono text-lg font-bold text-sky-600" x-text="currentData ? currentData.total_teams : 0"></span>
+          <div class="grid grid-cols-2 gap-4 py-1">
+            <div>
+              <span class="text-xs font-medium text-slate-500 block">Rating Range</span>
+              <span class="font-mono text-lg font-bold text-slate-900" x-text="eloSpread"></span>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-slate-500 block">Total Teams</span>
+              <span class="font-mono text-lg font-bold text-sky-600" x-text="currentData ? currentData.total_teams : 0"></span>
+            </div>
           </div>
         </div>
-        <div class="text-xs text-slate-400 pt-2 border-t border-slate-100 flex items-center justify-between">
-          <span x-text="sport === 'mlb' ? 'MLB Season 2026' : 'NFL Regular Season'"></span>
-          <span>100 pts ≈ 64% Win Prob</span>
+
+        <!-- Plain-English Explanation -->
+        <div class="mt-3 pt-2.5 border-t border-slate-100 text-xs text-slate-600 leading-relaxed bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/60">
+          <div class="flex items-start space-x-1.5">
+            <span class="text-amber-500 text-sm leading-none mt-0.5">💡</span>
+            <div>
+              <span class="font-bold text-slate-800">What do ratings mean?</span>
+              <strong>1500</strong> is league average. A team rated <strong>100 points higher</strong> than its opponent (e.g. 1600 vs. 1500) has an expected <strong>~64% chance to win</strong> head-to-head on a neutral field.
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -423,6 +435,31 @@
           <p class="leading-relaxed">
             Updated weekly following regular season games. Match update factor $K=25$. Home field advantage of +40 Elo points. Multi-season regression factor of 33% towards 1500. Sourced via <span class="font-mono text-slate-700 font-semibold">nflfastR</span> and <span class="font-mono text-slate-700 font-semibold">nflreadr</span>.
           </p>
+        </div>
+      </div>
+
+      <!-- Plain-English Guide to Elo & Win Probabilities -->
+      <div class="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-2">
+        <span class="font-bold text-slate-900 block text-sm">💡 How to Read Elo Ratings & Win Probabilities</span>
+        <p class="leading-relaxed">
+          Elo is a dynamic ranking system where <strong>1500 represents an average team</strong>. Whenever two teams play, the rating difference calculates the expected outcome. Beating a higher-rated opponent awards more points than beating an underdog.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+            <span class="text-slate-500 block text-[11px] font-semibold uppercase tracking-wider">Even Matchup</span>
+            <div class="font-bold text-slate-800 text-sm mt-0.5">0 pt difference</div>
+            <p class="text-slate-500 mt-1">Both teams have an exact <strong>50%</strong> chance to win.</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+            <span class="text-sky-600 block text-[11px] font-semibold uppercase tracking-wider">Moderate Favorite</span>
+            <div class="font-bold text-slate-800 text-sm mt-0.5">+100 pt difference</div>
+            <p class="text-slate-500 mt-1">The favorite has a <strong>~64%</strong> chance to win (e.g. 1600 vs. 1500).</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+            <span class="text-amber-600 block text-[11px] font-semibold uppercase tracking-wider">Heavy Favorite</span>
+            <div class="font-bold text-slate-800 text-sm mt-0.5">+200 pt difference</div>
+            <p class="text-slate-500 mt-1">The favorite has a <strong>~76%</strong> chance to win (e.g. 1650 vs. 1450).</p>
+          </div>
         </div>
       </div>
     </div>
