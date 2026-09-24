@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+Thumbs.db
+
+# Standalone original clones
+MLBElo/
+NFLElo/
+
