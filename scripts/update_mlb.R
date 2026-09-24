@@ -201,16 +201,6 @@ update_all_mlb <- function(rds_path = "data/mlb_elo.rds", k = 7, regress = 0.14)
       filter(dates_games_status_abstractGameState == "Final")
     
     if (nrow(games) == 0) {
-      daily_elo <- elo_ratings %>%
-        mutate(
-          date = as.Date(current_date),
-          delta_elo = 0
-        ) %>%
-        left_join(team_records, by = "team") %>%
-        arrange(desc(elo)) %>%
-        select("Team" = team, "Elo Rating" = elo, "Daily Elo Change" = delta_elo,
-               "Wins" = wins, "Losses" = losses, "Date" = date)
-      elo_history[[as.character(current_date)]] <- daily_elo
       next
     }
     
@@ -317,11 +307,27 @@ saveRDS(elo_with_logos, file = "data/mlb_elo.rds")
 message("Saved full history through ", as.character(max(as.Date(elo_with_logos$Date))), " to data/mlb_elo.rds")
 
 # Latest snapshot for website
+latest_date <- max(as.Date(elo_with_logos$Date))
 latest_elo_df <- elo_with_logos %>%
+  filter(as.Date(Date) == latest_date) %>%
+  group_by(Team) %>%
+  filter(row_number() == 1) %>%
+  ungroup() %>%
+  mutate(Rank = min_rank(desc(`Elo Rating`))) %>%
+  arrange(Rank)
+
+# In case a team had an off-day on latest_date, look up their most recent non-zero delta
+teams_with_changes <- elo_with_logos %>%
+  filter(`Daily Elo Change` != 0) %>%
   group_by(Team) %>%
   filter(Date == max(Date)) %>%
-  ungroup() %>%
-  arrange(Rank)
+  select(Team, last_active_change = `Daily Elo Change`)
+
+latest_elo_df <- latest_elo_df %>%
+  left_join(teams_with_changes, by = "Team") %>%
+  mutate(
+    final_daily_change = ifelse(`Daily Elo Change` != 0, `Daily Elo Change`, coalesce(last_active_change, 0))
+  )
 
 Sys.setenv(TZ = "America/Chicago")
 updated_timestamp <- format(Sys.time(), "%b %d, %Y %I:%M %p %Z")
@@ -339,8 +345,8 @@ mlb_export <- list(
       team_abbr = team_abbr,
       team_logo_espn = team_logo_espn,
       team_color = ifelse(is.na(team_color), "#002D62", team_color),
-      rating = as.numeric(`Elo Rating`),
-      daily_change = as.numeric(`Daily Elo Change`),
+      rating = as.numeric(round(`Elo Rating`, 1)),
+      daily_change = as.numeric(round(final_daily_change, 1)),
       wins = as.integer(Wins),
       losses = as.integer(Losses),
       record = paste0(Wins, "-", Losses)
