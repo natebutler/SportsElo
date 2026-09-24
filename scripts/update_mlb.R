@@ -1,5 +1,6 @@
 # scripts/update_mlb.R
 # Fetches latest MLB game data, calculates Elo ratings, and exports JSON + plot
+# Supports fast incremental updates resuming from the last recorded date in data/mlb_elo.rds
 
 suppressPackageStartupMessages({
   library(httr)
@@ -25,7 +26,6 @@ ParserGameByDate <- function(game_date = Sys.Date()) {
   res <- tryCatch({
     GET(url, timeout(15))
   }, error = function(e) {
-    message("Error connecting to MLB API for ", formatted_date, ": ", e$message)
     return(NULL)
   })
   
@@ -34,8 +34,8 @@ ParserGameByDate <- function(game_date = Sys.Date()) {
   raw_text <- rawToChar(res$content)
   if (nchar(raw_text) == 0) return(NULL)
   
-  data <- fromJSON(raw_text, flatten = TRUE)
-  if (is.null(data$totalItems) || data$totalItems == 0) return(NULL)
+  data <- tryCatch({ fromJSON(raw_text, flatten = TRUE) }, error = function(e) NULL)
+  if (is.null(data) || is.null(data$totalItems) || data$totalItems == 0) return(NULL)
   
   dataRaw <- enframe(unlist(data))
   dataRaw$name <- str_replace_all(dataRaw$name, "\\.", "_")
@@ -73,7 +73,7 @@ ParserGameByDate <- function(game_date = Sys.Date()) {
 }
 
 # 2. Elo update function
-update_elo <- function(team_elo, opponent_elo, outcome, k = 10) {
+update_elo <- function(team_elo, opponent_elo, outcome, k = 7) {
   expected_score <- 1 / (1 + 10 ^ ((opponent_elo - team_elo) / 400))
   new_elo <- team_elo + k * (outcome - expected_score)
   return(new_elo)
@@ -104,33 +104,90 @@ initialize_elo <- function(regress_to_mean = 0.75) {
   return(new_year_elo)
 }
 
-# 4. Multi-day Elo runner
-update_elo_ratings <- function(regress = 0.14, start_date = "2026-03-24", end_date = Sys.Date(), k = 7) {
-  date_seq <- seq.Date(as.Date(start_date), as.Date(end_date), by = "day")
+# 4. Incremental / Full Elo Runner
+update_all_mlb <- function(rds_path = "data/mlb_elo.rds", k = 7, regress = 0.14) {
+  existing_data <- NULL
+  if (file.exists(rds_path)) {
+    tryCatch({
+      existing_data <- readRDS(rds_path)
+      message("Found existing data through: ", as.character(max(as.Date(existing_data$Date))))
+    }, error = function(e) {
+      existing_data <<- NULL
+    })
+  }
   
-  elo_ratings <- tibble(initialize_elo(regress))
-  elo_history <- list()
-  previous_elo <- elo_ratings
+  today <- Sys.Date()
   
-  team_records <- tibble(team = elo_ratings$team, wins = 0, losses = 0)
+  if (!is.null(existing_data) && nrow(existing_data) > 0) {
+    last_date <- max(as.Date(existing_data$Date))
+    
+    if (last_date >= today) {
+      message("MLB data is already up to date through today (", as.character(today), ").")
+      return(existing_data)
+    }
+    
+    start_date <- last_date + 1
+    message("Fetching incremental games from ", as.character(start_date), " to ", as.character(today), "...")
+    
+    # Extract last snapshot for ratings and records
+    last_snapshot <- existing_data %>%
+      filter(as.Date(Date) == last_date) %>%
+      distinct(Team, .keep_all = TRUE)
+    
+    elo_ratings <- tibble(team = last_snapshot$Team, elo = as.numeric(last_snapshot$`Elo Rating`))
+    team_records <- tibble(team = last_snapshot$Team, wins = as.integer(last_snapshot$Wins), losses = as.integer(last_snapshot$Losses))
+    previous_elo <- elo_ratings
+    elo_history <- list()
+  } else {
+    start_date <- as.Date("2026-03-24")
+    message("Running full MLB calculation from ", as.character(start_date), " to ", as.character(today), "...")
+    elo_ratings <- tibble(initialize_elo(regress))
+    elo_history <- list()
+    previous_elo <- elo_ratings
+    team_records <- tibble(team = elo_ratings$team, wins = 0, losses = 0)
+    
+    initial_elo <- elo_ratings %>%
+      mutate(
+        `Daily Elo Change` = 0,
+        Wins = 0,
+        Losses = 0,
+        Date = as.Date(start_date)
+      ) %>%
+      rename(`Team` = team, `Elo Rating` = elo) %>%
+      select(`Team`, `Elo Rating`, `Daily Elo Change`, Wins, Losses, Date)
+    
+    elo_history[[as.character(start_date)]] <- initial_elo
+    start_date <- start_date + 1
+  }
   
-  initial_elo <- elo_ratings %>%
-    mutate(
-      `Daily Elo Change` = 0,
-      Wins = 0,
-      Losses = 0,
-      Date = as.Date(start_date)
-    ) %>%
-    rename(`Team` = team, `Elo Rating` = elo) %>%
-    select(`Team`, `Elo Rating`, `Daily Elo Change`, Wins, Losses, Date)
-  
-  elo_history[[as.character(start_date)]] <- initial_elo
+  date_seq <- seq.Date(start_date, today, by = "day")
+  total_days <- length(date_seq)
+  day_count <- 0
   
   for (current_date in date_seq) {
+    day_count <- day_count + 1
     current_date_str <- format(as.Date(current_date), "%Y-%m-%d")
+    
+    if (day_count %% 15 == 0 || day_count == total_days) {
+      message("Processing date: ", current_date_str, " (", day_count, "/", total_days, ")")
+    }
+    
     games <- ParserGameByDate(current_date_str)
     
-    if (is.null(games)) next
+    if (is.null(games)) {
+      # No games on this date; record carryover
+      daily_elo <- elo_ratings %>%
+        mutate(
+          date = as.Date(current_date),
+          delta_elo = 0
+        ) %>%
+        left_join(team_records, by = "team") %>%
+        arrange(desc(elo)) %>%
+        select("Team" = team, "Elo Rating" = elo, "Daily Elo Change" = delta_elo,
+               "Wins" = wins, "Losses" = losses, "Date" = date)
+      elo_history[[as.character(current_date)]] <- daily_elo
+      next
+    }
     
     valid_names <- names(games)
     valid_names <- valid_names[!is.na(valid_names) & valid_names != ""]
@@ -143,7 +200,19 @@ update_elo_ratings <- function(regress = 0.14, start_date = "2026-03-24", end_da
       filter(dates_games_seriesDescription == "Regular Season") %>%
       filter(dates_games_status_abstractGameState == "Final")
     
-    if (nrow(games) == 0) next
+    if (nrow(games) == 0) {
+      daily_elo <- elo_ratings %>%
+        mutate(
+          date = as.Date(current_date),
+          delta_elo = 0
+        ) %>%
+        left_join(team_records, by = "team") %>%
+        arrange(desc(elo)) %>%
+        select("Team" = team, "Elo Rating" = elo, "Daily Elo Change" = delta_elo,
+               "Wins" = wins, "Losses" = losses, "Date" = date)
+      elo_history[[as.character(current_date)]] <- daily_elo
+      next
+    }
     
     games <- games %>%
       filter(!is.na(dates_games_teams_home_score), !is.na(dates_games_teams_away_score)) %>%
@@ -160,8 +229,12 @@ update_elo_ratings <- function(regress = 0.14, start_date = "2026-03-24", end_da
       game <- games[i, ]
       home <- game$home_team
       away <- game$away_team
-      home_win <- as.numeric(game$dates_games_teams_home_isWinner == 'TRUE')
-      away_win <- as.numeric(game$dates_games_teams_away_isWinner == 'TRUE')
+      home_win <- as.numeric(game$dates_games_teams_home_isWinner == "TRUE")
+      away_win <- as.numeric(game$dates_games_teams_away_isWinner == "TRUE")
+      
+      # Handle Athletics alias
+      if (home == "Oakland Athletics") home <- "Athletics"
+      if (away == "Oakland Athletics") away <- "Athletics"
       
       if ((home %in% elo_ratings$team) && (away %in% elo_ratings$team)) {
         home_elo <- elo_ratings$elo[elo_ratings$team == home]
@@ -177,6 +250,7 @@ update_elo_ratings <- function(regress = 0.14, start_date = "2026-03-24", end_da
     
     elo_ratings$elo <- round(elo_ratings$elo, 1)
     
+    # Update team records
     record_df <- tibble(
       team = c(games$home_team, games$away_team),
       wins = c(as.integer(games$dates_games_teams_home_leagueRecord_wins),
@@ -184,6 +258,7 @@ update_elo_ratings <- function(regress = 0.14, start_date = "2026-03-24", end_da
       losses = c(as.integer(games$dates_games_teams_home_leagueRecord_losses),
                  as.integer(games$dates_games_teams_away_leagueRecord_losses))
     ) %>%
+      mutate(team = ifelse(team == "Oakland Athletics", "Athletics", team)) %>%
       group_by(team) %>%
       summarise(
         wins = max(wins, na.rm = TRUE),
@@ -203,34 +278,43 @@ update_elo_ratings <- function(regress = 0.14, start_date = "2026-03-24", end_da
       left_join(team_records, by = "team") %>%
       arrange(desc(elo)) %>%
       select("Team" = team, "Elo Rating" = elo, "Daily Elo Change" = delta_elo,
-             "Wins" = wins, "Losses" = losses, 'Date' = date)
+             "Wins" = wins, "Losses" = losses, "Date" = date)
     
     elo_history[[as.character(current_date)]] <- daily_elo
     previous_elo <- elo_ratings
   }
   
-  full_elo_df <- bind_rows(elo_history)
-  return(full_elo_df)
+  new_days_df <- bind_rows(elo_history)
+  
+  # Join logos for the new days
+  team_logos <- load_mlb_teams() %>% 
+    select(team_name, team_abbr, team_color, team_logo_espn)
+  
+  new_days_with_logos <- new_days_df %>%
+    mutate(Team = ifelse(Team == "Athletics", "Oakland Athletics", Team)) %>%
+    left_join(team_logos, by = c("Team" = "team_name")) %>%
+    mutate(Team = ifelse(Team == "Oakland Athletics", "Athletics", Team)) %>%
+    group_by(Date) %>%
+    mutate(Rank = min_rank(desc(`Elo Rating`))) %>%
+    ungroup()
+  
+  if (!is.null(existing_data) && nrow(existing_data) > 0) {
+    combined_df <- bind_rows(existing_data, new_days_with_logos) %>%
+      distinct(Date, Team, .keep_all = TRUE)
+  } else {
+    combined_df <- new_days_with_logos
+  }
+  
+  return(combined_df)
 }
 
 # --- Execution ---
 message("Updating MLB Elo Ratings...")
-elo_results <- update_elo_ratings(regress = 0.14, k = 7, start_date = "2026-03-24")
+elo_with_logos <- update_all_mlb(rds_path = "data/mlb_elo.rds", k = 7, regress = 0.14)
 
-message("Fetching MLB team logos & colors...")
-team_logos <- load_mlb_teams() %>% 
-  select(team_name, team_abbr, team_color, team_logo_espn)
-
-elo_with_logos <- elo_results %>%
-  mutate(Team = ifelse(Team == "Athletics", "Oakland Athletics", Team)) %>%
-  left_join(team_logos, by = c("Team" = "team_name")) %>%
-  mutate(Team = ifelse(Team == "Oakland Athletics", "Athletics", Team)) %>%
-  group_by(Date) %>%
-  mutate(Rank = min_rank(desc(`Elo Rating`))) %>%
-  ungroup()
-
-# Save RDS backup
+# Save updated RDS
 saveRDS(elo_with_logos, file = "data/mlb_elo.rds")
+message("Saved full history through ", as.character(max(as.Date(elo_with_logos$Date))), " to data/mlb_elo.rds")
 
 # Latest snapshot for website
 latest_elo_df <- elo_with_logos %>%
@@ -264,7 +348,7 @@ mlb_export <- list(
 )
 
 write_json(mlb_export, "data/mlb.json", pretty = TRUE, auto_unbox = TRUE)
-message("Wrote data/mlb.json successfully.")
+message("Wrote data/mlb.json successfully (", nrow(latest_elo_df), " teams).")
 
 # Generate Trend Plot with Scoreboard Logos
 message("Rendering data/mlb_trend.png...")
@@ -276,7 +360,7 @@ base_breaks <- seq(min_elo, max_break, by = 20)
 custom_breaks <- sort(unique(c(base_breaks, 1500, min_elo, max_break)))
 
 p <- ggplot(elo_with_logos, aes(x = as.Date(Date), y = `Elo Rating`, group = team_abbr, color = team_abbr)) +
-  geom_line(linewidth = 1, alpha = 0.85) +
+  geom_line(linewidth = 0.9, alpha = 0.8) +
   geom_mlb_scoreboard_logos(
     data = latest_elo_df,
     mapping = aes(x = as.Date(Date), y = `Elo Rating`, team_abbr = team_abbr),
@@ -286,13 +370,13 @@ p <- ggplot(elo_with_logos, aes(x = as.Date(Date), y = `Elo Rating`, group = tea
   scale_color_mlb(type = "primary") +
   scale_y_continuous(limits = c(min_elo, max_break), breaks = custom_breaks) +
   scale_x_date(
-    limits = c(min(as.Date(elo_with_logos$Date)), max(as.Date(elo_with_logos$Date)) + 1),
+    limits = c(min(as.Date(elo_with_logos$Date)), max(as.Date(elo_with_logos$Date)) + 2),
     breaks = seq(min(as.Date(elo_with_logos$Date)), max(as.Date(elo_with_logos$Date)), length.out = 6),
     date_labels = "%b %d"
   ) +
   labs(
     title = "MLB Elo Ratings Over Time",
-    subtitle = paste("Dynamic Ratings (K=7, Mean Regression=0.14) • Updated", updated_timestamp),
+    subtitle = paste("Historical Elo Progression • Updated", updated_timestamp),
     x = "Date",
     y = "Elo Rating"
   ) +
