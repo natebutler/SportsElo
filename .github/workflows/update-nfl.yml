@@ -2,7 +2,7 @@ name: Weekly NFL Elo Update
 
 on:
   schedule:
-    - cron: '0 15 * * 2'   # 10:00 AM CDT Tuesdays (after Monday Night Football)
+    - cron: '37 9 * * 2'   # 4:37 AM CDT / 3:37 AM CST Tuesdays (off-peak, after Monday Night Football)
   workflow_dispatch:
 
 jobs:
