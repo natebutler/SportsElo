@@ -37,24 +37,10 @@ SportsElo/
 │   └── export_from_rds.R        # Helper to export JSON from local RDS files
 ├── .github/
 │   └── workflows/
-│       ├── update-mlb.yml       # Daily scheduled run (5:00 AM CDT)
-│       ├── update-nfl.yml       # Weekly scheduled run (Tuesdays 10:00 AM CDT)
+│       ├── update-mlb.yml       # Daily scheduled run (Daily)
+│       ├── update-nfl.yml       # Weekly scheduled run (Tuesday Morning)
 │       └── manual-update.yml    # On-demand manual trigger via GitHub Actions
-├── MLBElo/                      # (Preserved) original MLB Elo repository
-└── NFLElo/                      # (Preserved) original NFL Elo repository
 ```
-
----
-
-## 🚀 Setting Up on GitHub Pages
-
-1. Push this repository to your GitHub account (e.g., `https://github.com/your-username/SportsElo`).
-2. In your repository on GitHub, navigate to **Settings** → **Pages**.
-3. Under **Build and deployment**:
-   - **Source**: Select `Deploy from a branch`.
-   - **Branch**: Select `main` (or `master`) and folder `/ (root)`.
-   - Click **Save**.
-4. GitHub Pages will build your site in seconds at `https://your-username.github.io/SportsElo/`.
 
 ---
 
