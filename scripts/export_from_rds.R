@@ -18,6 +18,20 @@ latest_mlb <- mlb_data %>%
   ungroup() %>%
   arrange(Rank)
 
+# Check if regular season games actually occurred on the latest date
+last_game_date <- mlb_data %>%
+  filter(`Daily Elo Change` != 0) %>%
+  pull(Date) %>%
+  max(na.rm = TRUE)
+
+latest_date <- max(as.Date(mlb_data$Date))
+is_game_day <- !is.na(last_game_date) && (latest_date == last_game_date)
+
+latest_mlb <- latest_mlb %>%
+  mutate(
+    final_daily_change = if (is_game_day) `Daily Elo Change` else 0
+  )
+
 Sys.setenv(TZ = "America/Chicago")
 up_time <- format(Sys.time(), "%b %d, %Y %I:%M %p %Z")
 
@@ -34,7 +48,7 @@ mlb_json <- list(
       team_logo_espn = team_logo_espn,
       team_color = ifelse(is.na(team_color), "#002D62", team_color),
       rating = as.numeric(round(`Elo Rating`, 1)),
-      daily_change = as.numeric(round(`Daily Elo Change`, 1)),
+      daily_change = as.numeric(round(final_daily_change, 1)),
       wins = as.integer(Wins),
       losses = as.integer(Losses),
       record = paste0(Wins, "-", Losses)

@@ -174,8 +174,39 @@ update_all_mlb <- function(rds_path = "data/mlb_elo.rds", k = 7, regress = 0.14)
     
     games <- ParserGameByDate(current_date_str)
     
-    if (is.null(games)) {
-      # No games on this date; record carryover
+    has_final_reg_games <- FALSE
+    if (!is.null(games)) {
+      valid_names <- names(games)
+      valid_names <- valid_names[!is.na(valid_names) & valid_names != ""]
+      games <- games %>% select(all_of(valid_names))
+      
+      if (("dates_games_seriesDescription" %in% names(games))) {
+        games <- games %>%
+          filter(dates_games_seriesDescription == "Regular Season")
+      } else {
+        games <- games[0, ]
+      }
+      
+      if (("dates_games_status_abstractGameState" %in% names(games))) {
+        games <- games %>%
+          filter(dates_games_status_abstractGameState == "Final")
+      } else {
+        games <- games[0, ]
+      }
+      
+      if (nrow(games) > 0 && 
+          ("dates_games_teams_home_score" %in% names(games)) && 
+          ("dates_games_teams_away_score" %in% names(games))) {
+        games <- games %>%
+          filter(!is.na(dates_games_teams_home_score), !is.na(dates_games_teams_away_score))
+        if (nrow(games) > 0) {
+          has_final_reg_games <- TRUE
+        }
+      }
+    }
+    
+    if (!has_final_reg_games) {
+      # No completed regular season games on this date; record carryover with 0 daily change
       daily_elo <- elo_ratings %>%
         mutate(
           date = as.Date(current_date),
@@ -186,21 +217,6 @@ update_all_mlb <- function(rds_path = "data/mlb_elo.rds", k = 7, regress = 0.14)
         select("Team" = team, "Elo Rating" = elo, "Daily Elo Change" = delta_elo,
                "Wins" = wins, "Losses" = losses, "Date" = date)
       elo_history[[as.character(current_date)]] <- daily_elo
-      next
-    }
-    
-    valid_names <- names(games)
-    valid_names <- valid_names[!is.na(valid_names) & valid_names != ""]
-    games <- games %>% select(all_of(valid_names))
-    
-    if (!("dates_games_seriesDescription" %in% names(games))) next
-    if (!("dates_games_status_abstractGameState" %in% names(games))) next
-    
-    games <- games %>%
-      filter(dates_games_seriesDescription == "Regular Season") %>%
-      filter(dates_games_status_abstractGameState == "Final")
-    
-    if (nrow(games) == 0) {
       next
     }
     
@@ -325,17 +341,19 @@ latest_elo_df <- elo_with_logos %>%
   mutate(Rank = min_rank(desc(`Elo Rating`))) %>%
   arrange(Rank)
 
-# In case a team had an off-day on latest_date, look up their most recent non-zero delta
-teams_with_changes <- elo_with_logos %>%
+# Check when regular season games were most recently played
+last_game_date <- elo_with_logos %>%
   filter(`Daily Elo Change` != 0) %>%
-  group_by(Team) %>%
-  filter(Date == max(Date)) %>%
-  select(Team, last_active_change = `Daily Elo Change`)
+  pull(Date) %>%
+  max(na.rm = TRUE)
+
+# Daily change is only non-zero if regular season games actually occurred on latest_date.
+# If the regular season has ended or no games were played today, daily change is 0 for all teams.
+is_game_day <- !is.na(last_game_date) && (as.Date(latest_date) == as.Date(last_game_date))
 
 latest_elo_df <- latest_elo_df %>%
-  left_join(teams_with_changes, by = "Team") %>%
   mutate(
-    final_daily_change = ifelse(`Daily Elo Change` != 0, `Daily Elo Change`, coalesce(last_active_change, 0))
+    final_daily_change = if (is_game_day) `Daily Elo Change` else 0
   )
 
 Sys.setenv(TZ = "America/Chicago")

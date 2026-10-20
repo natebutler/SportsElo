@@ -1,7 +1,7 @@
 {
   "sport": "MLB",
   "season": 2026,
-  "updated_at": "Oct 19, 2026 11:28 AM CDT",
+  "updated_at": "Oct 20, 2026 12:29 AM CDT",
   "total_teams": 30,
   "teams": [
     {
@@ -11,7 +11,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/mil.png",
       "team_color": "#FFC52F",
       "rating": 1587.9,
-      "daily_change": 2.4,
+      "daily_change": 0,
       "wins": 103,
       "losses": 59,
       "record": "103-59"
@@ -23,7 +23,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
       "team_color": "#005A9C",
       "rating": 1573.2,
-      "daily_change": 2.3,
+      "daily_change": 0,
       "wins": 100,
       "losses": 62,
       "record": "100-62"
@@ -35,7 +35,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/tb.png",
       "team_color": "#092C5C",
       "rating": 1563.6,
-      "daily_change": -3.9,
+      "daily_change": 0,
       "wins": 98,
       "losses": 64,
       "record": "98-64"
@@ -47,7 +47,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/sd.png",
       "team_color": "#2F241D",
       "rating": 1547,
-      "daily_change": 3.3,
+      "daily_change": 0,
       "wins": 91,
       "losses": 71,
       "record": "91-71"
@@ -59,7 +59,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png",
       "team_color": "#0C2340",
       "rating": 1545.5,
-      "daily_change": -0.8,
+      "daily_change": 0,
       "wins": 93,
       "losses": 68,
       "record": "93-68"
@@ -71,7 +71,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/atl.png",
       "team_color": "#CE1141",
       "rating": 1540.6,
-      "daily_change": -4,
+      "daily_change": 0,
       "wins": 94,
       "losses": 68,
       "record": "94-68"
@@ -83,7 +83,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/bos.png",
       "team_color": "#BD3039",
       "rating": 1534.3,
-      "daily_change": -3.7,
+      "daily_change": 0,
       "wins": 87,
       "losses": 75,
       "record": "87-75"
@@ -95,7 +95,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/phi.png",
       "team_color": "#E81828",
       "rating": 1531.2,
-      "daily_change": 3.9,
+      "daily_change": 0,
       "wins": 88,
       "losses": 74,
       "record": "88-74"
@@ -107,7 +107,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/chc.png",
       "team_color": "#0E3386",
       "rating": 1526.1,
-      "daily_change": 3.7,
+      "daily_change": 0,
       "wins": 89,
       "losses": 73,
       "record": "89-73"
@@ -119,7 +119,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/ari.png",
       "team_color": "#A71930",
       "rating": 1523.6,
-      "daily_change": -3.3,
+      "daily_change": 0,
       "wins": 86,
       "losses": 76,
       "record": "86-76"
@@ -131,7 +131,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/cle.png",
       "team_color": "#0C2340",
       "rating": 1516.4,
-      "daily_change": -4.1,
+      "daily_change": 0,
       "wins": 85,
       "losses": 77,
       "record": "85-77"
@@ -143,7 +143,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/pit.png",
       "team_color": "#27251F",
       "rating": 1511.9,
-      "daily_change": 3.3,
+      "daily_change": 0,
       "wins": 82,
       "losses": 80,
       "record": "82-80"
@@ -155,7 +155,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/cws.png",
       "team_color": "#27251F",
       "rating": 1506.1,
-      "daily_change": 2.6,
+      "daily_change": 0,
       "wins": 84,
       "losses": 78,
       "record": "84-78"
@@ -167,7 +167,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/bal.png",
       "team_color": "#DF4601",
       "rating": 1504.9,
-      "daily_change": 0.8,
+      "daily_change": 0,
       "wins": 79,
       "losses": 82,
       "record": "79-82"
@@ -179,7 +179,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/hou.png",
       "team_color": "#002D62",
       "rating": 1503.1,
-      "daily_change": 2.8,
+      "daily_change": 0,
       "wins": 81,
       "losses": 81,
       "record": "81-81"
@@ -191,7 +191,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/tor.png",
       "team_color": "#134A8E",
       "rating": 1499.2,
-      "daily_change": 3.3,
+      "daily_change": 0,
       "wins": 79,
       "losses": 83,
       "record": "79-83"
@@ -203,7 +203,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png",
       "team_color": "#00A3E0",
       "rating": 1497.9,
-      "daily_change": 4,
+      "daily_change": 0,
       "wins": 80,
       "losses": 82,
       "record": "80-82"
@@ -215,7 +215,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png",
       "team_color": "#002D72",
       "rating": 1493.3,
-      "daily_change": -3.7,
+      "daily_change": 0,
       "wins": 74,
       "losses": 88,
       "record": "74-88"
@@ -227,7 +227,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png",
       "team_color": "#003278",
       "rating": 1493,
-      "daily_change": -3.7,
+      "daily_change": 0,
       "wins": 80,
       "losses": 82,
       "record": "80-82"
@@ -239,7 +239,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/det.png",
       "team_color": "#0C2340",
       "rating": 1482,
-      "daily_change": -3.3,
+      "daily_change": 0,
       "wins": 76,
       "losses": 86,
       "record": "76-86"
@@ -251,7 +251,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png",
       "team_color": "#AB0003",
       "rating": 1480.2,
-      "daily_change": 3.7,
+      "daily_change": 0,
       "wins": 77,
       "losses": 85,
       "record": "77-85"
@@ -263,7 +263,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/min.png",
       "team_color": "#002B5C",
       "rating": 1479.1,
-      "daily_change": 3.7,
+      "daily_change": 0,
       "wins": 77,
       "losses": 85,
       "record": "77-85"
@@ -275,7 +275,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/cin.png",
       "team_color": "#C6011F",
       "rating": 1477.7,
-      "daily_change": -3.3,
+      "daily_change": 0,
       "wins": 75,
       "losses": 87,
       "record": "75-87"
@@ -287,7 +287,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png",
       "team_color": "#0C2C56",
       "rating": 1472.8,
-      "daily_change": 3,
+      "daily_change": 0,
       "wins": 76,
       "losses": 86,
       "record": "76-86"
@@ -299,7 +299,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/stl.png",
       "team_color": "#C41E3A",
       "rating": 1469.1,
-      "daily_change": -2.4,
+      "daily_change": 0,
       "wins": 77,
       "losses": 85,
       "record": "77-85"
@@ -311,7 +311,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png",
       "team_color": "#004687",
       "rating": 1460.6,
-      "daily_change": 4.1,
+      "daily_change": 0,
       "wins": 69,
       "losses": 93,
       "record": "69-93"
@@ -323,7 +323,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/sf.png",
       "team_color": "#FD5A1E",
       "rating": 1442.5,
-      "daily_change": -2.3,
+      "daily_change": 0,
       "wins": 65,
       "losses": 97,
       "record": "65-97"
@@ -335,7 +335,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/oak.png",
       "team_color": "#003831",
       "rating": 1431.3,
-      "daily_change": -2.8,
+      "daily_change": 0,
       "wins": 64,
       "losses": 98,
       "record": "64-98"
@@ -347,7 +347,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/laa.png",
       "team_color": "#003263",
       "rating": 1421.8,
-      "daily_change": -3,
+      "daily_change": 0,
       "wins": 62,
       "losses": 100,
       "record": "62-100"
@@ -359,7 +359,7 @@
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/mlb/500/col.png",
       "team_color": "#33006F",
       "rating": 1405.1,
-      "daily_change": -2.6,
+      "daily_change": 0,
       "wins": 58,
       "losses": 104,
       "record": "58-104"

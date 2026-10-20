@@ -369,7 +369,7 @@
                       <span x-text="team.daily_change.toFixed(1)"></span>
                     </span>
                   </template>
-                  <template x-if="team.daily_change === 0">
+                  <template x-if="team.daily_change === 0 || team.daily_change == null">
                     <span class="text-xs text-slate-400 font-medium">0.0</span>
                   </template>
                 </td>
