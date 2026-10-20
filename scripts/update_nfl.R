@@ -10,9 +10,9 @@ suppressPackageStartupMessages({
 })
 
 run_nfl_elo <- function(seasons = c(2025, 2026),
-                        k = 25,
+                        k = 30,
                         home_field = 40,
-                        regress = 1/3,
+                        regress = 0.45,
                         mean_elo = 1500) {
   
   message("Loading NFL schedules for seasons: ", paste(seasons, collapse = ", "))
@@ -88,7 +88,7 @@ run_nfl_elo <- function(seasons = c(2025, 2026),
 
 # --- Execution ---
 message("Updating NFL Elo Ratings...")
-final_elo <- run_nfl_elo(seasons = c(2025, 2026), k = 25, home_field = 40)
+final_elo <- run_nfl_elo(seasons = c(2025, 2026), k = 30, regress = 0.45, home_field = 40)
 
 # Save RDS backup
 saveRDS(final_elo, "data/nfl_elo.rds")
