@@ -1,7 +1,7 @@
 {
   "sport": "NFL",
   "seasons": [2025, 2026],
-  "updated_at": "Oct 27, 2026 10:53 AM CDT",
+  "updated_at": "Nov 03, 2026 11:18 AM CST",
   "total_teams": 32,
   "teams": [
     {
@@ -10,11 +10,20 @@
       "team_abbr": "DEN",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
       "team_color": "#002244",
-      "rating": 1598.6,
-      "record": "5-2"
+      "rating": 1608.8,
+      "record": "6-2"
     },
     {
       "rank": 2,
+      "team_name": "Buffalo Bills",
+      "team_abbr": "BUF",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
+      "team_color": "#00338D",
+      "rating": 1596.8,
+      "record": "6-1"
+    },
+    {
+      "rank": 3,
       "team_name": "San Francisco 49ers",
       "team_abbr": "SF",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png",
@@ -23,31 +32,22 @@
       "record": "6-1"
     },
     {
-      "rank": 3,
-      "team_name": "Buffalo Bills",
-      "team_abbr": "BUF",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
-      "team_color": "#00338D",
-      "rating": 1587.1,
-      "record": "5-1"
-    },
-    {
       "rank": 4,
-      "team_name": "Minnesota Vikings",
-      "team_abbr": "MIN",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/min.png",
-      "team_color": "#4F2683",
-      "rating": 1585.3,
-      "record": "6-0"
+      "team_name": "Chicago Bears",
+      "team_abbr": "CHI",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png",
+      "team_color": "#0B162A",
+      "rating": 1580.9,
+      "record": "6-2"
     },
     {
       "rank": 5,
-      "team_name": "Seattle Seahawks",
-      "team_abbr": "SEA",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",
+      "team_name": "New England Patriots",
+      "team_abbr": "NE",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png",
       "team_color": "#002244",
-      "rating": 1570.5,
-      "record": "4-3"
+      "rating": 1580.6,
+      "record": "5-3"
     },
     {
       "rank": 6,
@@ -55,35 +55,35 @@
       "team_abbr": "JAX",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
       "team_color": "#006778",
-      "rating": 1570,
-      "record": "4-2"
-    },
-    {
-      "rank": 7,
-      "team_name": "New England Patriots",
-      "team_abbr": "NE",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png",
-      "team_color": "#002244",
-      "rating": 1569.6,
-      "record": "4-3"
-    },
-    {
-      "rank": 8,
-      "team_name": "Chicago Bears",
-      "team_abbr": "CHI",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png",
-      "team_color": "#0B162A",
-      "rating": 1563.9,
+      "rating": 1578.5,
       "record": "5-2"
     },
     {
-      "rank": 9,
+      "rank": 7,
+      "team_name": "Minnesota Vikings",
+      "team_abbr": "MIN",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/min.png",
+      "team_color": "#4F2683",
+      "rating": 1569.6,
+      "record": "6-1"
+    },
+    {
+      "rank": 8,
       "team_name": "Pittsburgh Steelers",
       "team_abbr": "PIT",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/pit.png",
       "team_color": "#000000",
+      "rating": 1564.9,
+      "record": "6-2"
+    },
+    {
+      "rank": 9,
+      "team_name": "Seattle Seahawks",
+      "team_abbr": "SEA",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",
+      "team_color": "#002244",
       "rating": 1553.5,
-      "record": "5-2"
+      "record": "4-4"
     },
     {
       "rank": 10,
@@ -91,65 +91,56 @@
       "team_abbr": "DET",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png",
       "team_color": "#0076B6",
-      "rating": 1529,
-      "record": "4-2"
+      "rating": 1544.7,
+      "record": "5-2"
     },
     {
       "rank": 11,
-      "team_name": "Kansas City Chiefs",
-      "team_abbr": "KC",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
-      "team_color": "#E31837",
-      "rating": 1522.3,
-      "record": "5-1"
-    },
-    {
-      "rank": 12,
       "team_name": "Green Bay Packers",
       "team_abbr": "GB",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png",
       "team_color": "#203731",
-      "rating": 1518.3,
-      "record": "4-3"
+      "rating": 1530.4,
+      "record": "5-3"
     },
     {
-      "rank": 13,
+      "rank": 12,
       "team_name": "Los Angeles Rams",
       "team_abbr": "LA",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
       "team_color": "#003594",
-      "rating": 1516.3,
-      "record": "3-4"
+      "rating": 1526.6,
+      "record": "4-4"
     },
     {
-      "rank": 14,
-      "team_name": "Cleveland Browns",
-      "team_abbr": "CLE",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
-      "team_color": "#FF3C00",
-      "rating": 1510.2,
-      "record": "5-2"
-    },
-    {
-      "rank": 15,
+      "rank": 13,
       "team_name": "Cincinnati Bengals",
       "team_abbr": "CIN",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
       "team_color": "#FB4F14",
-      "rating": 1506.6,
-      "record": "4-2"
+      "rating": 1515.1,
+      "record": "5-2"
+    },
+    {
+      "rank": 14,
+      "team_name": "Kansas City Chiefs",
+      "team_abbr": "KC",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+      "team_color": "#E31837",
+      "rating": 1512.2,
+      "record": "5-2"
+    },
+    {
+      "rank": 15,
+      "team_name": "Cleveland Browns",
+      "team_abbr": "CLE",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
+      "team_color": "#FF3C00",
+      "rating": 1498.7,
+      "record": "5-3"
     },
     {
       "rank": 16,
-      "team_name": "Baltimore Ravens",
-      "team_abbr": "BAL",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png",
-      "team_color": "#241773",
-      "rating": 1499.3,
-      "record": "4-3"
-    },
-    {
-      "rank": 17,
       "team_name": "Houston Texans",
       "team_abbr": "HOU",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png",
@@ -158,22 +149,31 @@
       "record": "2-5"
     },
     {
-      "rank": 18,
-      "team_name": "Atlanta Falcons",
-      "team_abbr": "ATL",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png",
-      "team_color": "#A71930",
-      "rating": 1493.7,
-      "record": "3-4"
+      "rank": 17,
+      "team_name": "Baltimore Ravens",
+      "team_abbr": "BAL",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png",
+      "team_color": "#241773",
+      "rating": 1489.6,
+      "record": "4-4"
     },
     {
-      "rank": 19,
+      "rank": 18,
       "team_name": "Carolina Panthers",
       "team_abbr": "CAR",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/car.png",
       "team_color": "#0085CA",
-      "rating": 1491.6,
-      "record": "3-3"
+      "rating": 1479.4,
+      "record": "3-4"
+    },
+    {
+      "rank": 19,
+      "team_name": "Atlanta Falcons",
+      "team_abbr": "ATL",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png",
+      "team_color": "#A71930",
+      "rating": 1478.6,
+      "record": "3-5"
     },
     {
       "rank": 20,
@@ -186,12 +186,12 @@
     },
     {
       "rank": 21,
-      "team_name": "Dallas Cowboys",
-      "team_abbr": "DAL",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png",
-      "team_color": "#002244",
-      "rating": 1470.9,
-      "record": "3-4"
+      "team_name": "Tampa Bay Buccaneers",
+      "team_abbr": "TB",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png",
+      "team_color": "#A71930",
+      "rating": 1466.5,
+      "record": "3-5"
     },
     {
       "rank": 22,
@@ -199,35 +199,35 @@
       "team_abbr": "PHI",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
       "team_color": "#004C54",
-      "rating": 1469.9,
-      "record": "2-5"
+      "rating": 1455,
+      "record": "2-6"
     },
     {
       "rank": 23,
-      "team_name": "Tampa Bay Buccaneers",
-      "team_abbr": "TB",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png",
-      "team_color": "#A71930",
-      "rating": 1451.4,
-      "record": "2-5"
+      "team_name": "Dallas Cowboys",
+      "team_abbr": "DAL",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png",
+      "team_color": "#002244",
+      "rating": 1452,
+      "record": "3-5"
     },
     {
       "rank": 24,
-      "team_name": "Indianapolis Colts",
-      "team_abbr": "IND",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png",
-      "team_color": "#002C5F",
-      "rating": 1446.6,
-      "record": "2-5"
+      "team_name": "Las Vegas Raiders",
+      "team_abbr": "LV",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/lv.png",
+      "team_color": "#000000",
+      "rating": 1448.1,
+      "record": "4-4"
     },
     {
       "rank": 25,
-      "team_name": "Los Angeles Chargers",
-      "team_abbr": "LAC",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png",
-      "team_color": "#007BC7",
-      "rating": 1445.8,
-      "record": "0-6"
+      "team_name": "Washington Commanders",
+      "team_abbr": "WAS",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png",
+      "team_color": "#5A1414",
+      "rating": 1447.2,
+      "record": "2-4-1"
     },
     {
       "rank": 26,
@@ -240,39 +240,39 @@
     },
     {
       "rank": 27,
-      "team_name": "Miami Dolphins",
-      "team_abbr": "MIA",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png",
-      "team_color": "#008E97",
-      "rating": 1434.8,
-      "record": "1-5"
+      "team_name": "Indianapolis Colts",
+      "team_abbr": "IND",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png",
+      "team_color": "#002C5F",
+      "rating": 1438.1,
+      "record": "2-6"
     },
     {
       "rank": 28,
-      "team_name": "Las Vegas Raiders",
-      "team_abbr": "LV",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/lv.png",
-      "team_color": "#000000",
-      "rating": 1432.3,
-      "record": "3-4"
-    },
-    {
-      "rank": 29,
-      "team_name": "Washington Commanders",
-      "team_abbr": "WAS",
-      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png",
-      "team_color": "#5A1414",
-      "rating": 1432.3,
-      "record": "1-4-1"
-    },
-    {
-      "rank": 30,
       "team_name": "Arizona Cardinals",
       "team_abbr": "ARI",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png",
       "team_color": "#97233F",
-      "rating": 1418.7,
-      "record": "2-5"
+      "rating": 1437.6,
+      "record": "3-5"
+    },
+    {
+      "rank": 29,
+      "team_name": "Los Angeles Chargers",
+      "team_abbr": "LAC",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png",
+      "team_color": "#007BC7",
+      "rating": 1435.4,
+      "record": "0-7"
+    },
+    {
+      "rank": 30,
+      "team_name": "Miami Dolphins",
+      "team_abbr": "MIA",
+      "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png",
+      "team_color": "#008E97",
+      "rating": 1423.8,
+      "record": "1-6"
     },
     {
       "rank": 31,
@@ -280,8 +280,8 @@
       "team_abbr": "NYJ",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png",
       "team_color": "#003F2D",
-      "rating": 1411,
-      "record": "2-5"
+      "rating": 1395.2,
+      "record": "2-6"
     },
     {
       "rank": 32,
@@ -289,8 +289,8 @@
       "team_abbr": "TEN",
       "team_logo_espn": "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png",
       "team_color": "#4495D2",
-      "rating": 1385.2,
-      "record": "1-6"
+      "rating": 1376.7,
+      "record": "1-7"
     }
   ]
 }
