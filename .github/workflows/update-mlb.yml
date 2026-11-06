@@ -1,8 +1,8 @@
 name: Daily MLB Elo Update
 
 on:
-  schedule:
-    - cron: '17 9 * * *'   # 4:17 AM CDT / 3:17 AM CST daily (off-peak)
+  # schedule:
+  #   - cron: '17 9 * * *'   # 4:17 AM CDT / 3:17 AM CST daily (off-peak)
   workflow_dispatch:
 
 jobs:
